@@ -1,8 +1,10 @@
 package com.hrx.android_flutter_fries;
 
 import android.app.Activity;
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -20,6 +22,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 public class AndroidFlutterFriesPlugin {
   private final Activity mActivity;
   private Context mContext;
+  private UiModeManager mUiModeManager;
   private static final String TAG = "FlutterFriesPlugin";
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
@@ -29,7 +32,8 @@ public class AndroidFlutterFriesPlugin {
 
   private AndroidFlutterFriesPlugin(MethodChannel channel, Activity activity) {
     this.mActivity = activity;
-    mContext = activity.getApplicationContext();
+    this.mContext = activity.getApplicationContext();
+    this.mUiModeManager = mContext.getSystemService(UiModeManager.class);
 
     channel.setMethodCallHandler(new MethodChannel.MethodCallHandler() {
       @Override
@@ -44,14 +48,31 @@ public class AndroidFlutterFriesPlugin {
             resultSuccess(result, getSystemSetting(setting));
           }
           case "setSystemSetting": {
-            final String setting_value = call.argument("setting_value");
-            String[] split_string = setting_value.split(":");
+            final String setting = call.argument("setting");
+            final int value = call.argument("value");
 
-            String setting = split_string[0];
-            int newValue = Integer.parseInt(split_string[1]);
-
-            setSystemSetting(setting, newValue);
+            setSystemSetting(setting, value);
             resultSuccess(result, null);
+          }
+          case "getSecureSetting": {
+            final String setting = call.argument("setting");
+            resultSuccess(result, getSecureSetting(setting));
+          }
+          case "setSecureSetting": {
+            final String setting = call.argument("setting");
+            final int value = call.argument("value");
+
+            setSecureSetting(setting, value);
+            resultSuccess(result, null);
+          }
+          case "getDarkModeValue": {
+            resultSuccess(result, getDarkModeValue());
+          }
+          case "setDarkModeValue": {
+            final boolean value = call.argument("value");
+
+            setDarkModeValue(value);
+            resultSuccess(result, getDarkModeValue());
           }
           case "getAccentColor": {
             resultSuccess(result, getAccentColor());
@@ -77,6 +98,30 @@ public class AndroidFlutterFriesPlugin {
 
   private void setSystemSetting(String setting, int newValue) {
     Settings.System.putInt(mContext.getContentResolver(), setting, newValue);
+  }
+
+  private int getSecureSetting(String setting) {
+    int returnInt = 0;
+    try {
+      returnInt = Settings.Secure.getInt(mContext.getContentResolver(), setting);
+    } catch(Settings.SettingNotFoundException e) {
+      Log.e(TAG, "Setting not found: " + setting);
+    }
+
+    return returnInt;
+  }
+
+  private void setSecureSetting(String setting, int newValue) {
+    Settings.Secure.putInt(mContext.getContentResolver(), setting, newValue);
+  }
+
+  private boolean getDarkModeValue() {
+    return (mContext.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) ==
+        Configuration.UI_MODE_NIGHT_YES;
+  }
+
+  private void setDarkModeValue(boolean value) {
+    mUiModeManager.setNightMode(value ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
   }
 
   private int getAccentColor() {

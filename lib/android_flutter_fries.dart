@@ -17,17 +17,17 @@ class AndroidFlutterFries {
   static Future<int> getSecureSetting(String setting) async =>
       await _channel.invokeMethod('getSecureSetting', {'setting': setting});
 
-  static Future<void> setSystemSetting(String setting_value) async =>
-      await _channel.invokeMethod('setSystemSetting', {'setting_value': setting_value});
+  static Future<void> setSystemSetting(String setting, int value) async =>
+      await _channel.invokeMethod('setSystemSetting', {'setting': setting, 'value': value});
 
-  static Future<void> setSystemSettingDelayed(String setting, int newValue) async =>
-      await _channel.invokeMethod('setSystemSettingDelayed', {'setting': setting, 'newValue': newValue});
+  static Future<void> setSecureSetting(String setting, int value) async =>
+      await _channel.invokeMethod('setSecureSetting', {'setting': setting, 'value': value});
 
-  static Future<void> setSecureSetting(String setting, int newValue) async =>
-      await _channel.invokeMethod('setSecureSetting', {'setting': setting, 'newValue': newValue});
+  static Future<bool> getDarkModeValue() async =>
+      await _channel.invokeMethod('getDarkModeValue');
 
-  static Future<void> setSecureSettingDelayed(String setting, int newValue) async =>
-      await _channel.invokeMethod('setSecureSettingDelayed', {'setting': setting, 'newValue': newValue});
+  static Future<void> setDarkModeValue(bool value) async =>
+      await _channel.invokeMethod('setDarkModeValue', {'value': value});
 
   static Future<void> changeOverlayStatus(String overlayPkg, bool enabled) async =>
       await _channel.invokeMethod('changeOverlayStatus', {'overlayPkg': overlayPkg, 'enabled': enabled});
